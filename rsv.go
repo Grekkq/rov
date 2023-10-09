@@ -4,9 +4,22 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/linxGnu/grocksdb"
 )
+
+func prettySprint(bytes []byte) string {
+	var result strings.Builder
+	for _, b := range bytes {
+		if b >= 33 && b <= 126 {
+			result.WriteByte(b)
+		} else {
+			result.WriteByte(46) // ascii "."
+		}
+	}
+	return result.String()
+}
 
 func handleGet(path string, key string) {
 	ro := grocksdb.NewDefaultReadOptions()
@@ -31,7 +44,8 @@ func handleGet(path string, key string) {
 		return
 	}
 	fmt.Printf("Raw data: %v\n", value.Data())
-	fmt.Printf("Data parsed to string: %s\n", value.Data())
+	fmt.Println("Parsed data:")
+	fmt.Println(prettySprint(value.Data()))
 }
 
 func handleGetAll(path string) {
@@ -53,7 +67,7 @@ func handleGetAll(path string) {
 	for it = it; it.Valid(); it.Next() {
 		key := it.Key()
 		value := it.Value()
-		fmt.Printf("Parsed key: %s raw bytes: %v\n", key.Data(), key.Data())
+		fmt.Printf("Parsed key: %s raw bytes: %v\n", prettySprint(key.Data()), key.Data())
 		key.Free()
 		value.Free()
 	}
